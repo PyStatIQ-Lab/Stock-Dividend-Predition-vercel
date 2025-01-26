@@ -1,10 +1,10 @@
 import yfinance as yf
 import pandas as pd
 import os
-from openpyxl import load_workbook
 import streamlit as st
+from io import BytesIO
 
-# Function to fetch data for a given stock ticker
+# Function to fetch financial data for a given stock ticker
 def get_financial_data(ticker):
     stock = yf.Ticker(ticker)
     result = {'Ticker': ticker}
@@ -85,26 +85,10 @@ def get_financial_data(ticker):
 
     return result
 
-# Function to save results to an Excel file
-def save_to_excel(results, filename="dividend_predictions.xlsx"):
-    try:
-        results_df = pd.DataFrame(results)
-        if os.path.exists(filename):
-            book = load_workbook(filename)
-            writer = pd.ExcelWriter(filename, engine='openpyxl')
-            writer.book = book
-            results_df.to_excel(writer, index=False, header=False, startrow=book.active.max_row)
-            writer.save()
-        else:
-            results_df.to_excel(filename, index=False)
-        st.success(f"Results saved to {filename}")
-    except Exception as e:
-        st.error(f"Error saving to Excel: {e}")
-
 # Streamlit App
 st.set_page_config(page_title="Stock Dividend Prediction", layout="wide")
 
-# Display Header Logo
+# Header and Logo
 st.markdown("""
     <style>
         .header-logo {
@@ -143,32 +127,20 @@ if uploaded_file is not None:
                 st.subheader("Financial Data Results")
                 results_df = pd.DataFrame(all_results)
                 st.dataframe(results_df)
-                
-                # Button to save the results to Excel
-                if st.button('Save Results to Excel'):
-                    save_to_excel(all_results)
 
-# Display Footer Logo
-# Content before the footer logo
+                # Button to download the results
+                csv = results_df.to_csv(index=False)
+                st.download_button(
+                    label="Download Financial Data as CSV",
+                    data=csv,
+                    file_name="financial_data.csv",
+                    mime="text/csv"
+                )
+
+# Footer
 st.markdown("""
     <div style="text-align: center; font-size: 14px; margin-top: 30px;">
         <p><strong>App Code:</strong> Stock-Dividend-Prediction-Jan-2025</p>
-        <p>To get access to the stocks file to upload, please Email us at <a href="mailto:support@pystatiq.com">support@pystatiq.com</a>.</p>
-        <p>Don't forget to add the Application code.</p>
-        <p><strong>README:</strong> <a href="https://pystatiq-lab.gitbook.io/docs/python-apps/stock-dividend-predictions" target="_blank">https://pystatiq-lab.gitbook.io/docs/python-apps/stock-dividend-predictions</a></p>
+        <p>For support, email us at <a href="mailto:support@pystatiq.com">support@pystatiq.com</a></p>
     </div>
-""", unsafe_allow_html=True)
-
-# Display Footer Logo
-st.markdown(f"""
-    <style>
-        .footer-logo {{
-            display: block;
-            margin-left: auto;
-            margin-right: auto;
-            width: 90px;
-            padding-top: 30px;
-        }}
-    </style>
-    <img class="footer-logo" src="https://predictram.com/images/logo.png" alt="Footer Logo">
 """, unsafe_allow_html=True)
